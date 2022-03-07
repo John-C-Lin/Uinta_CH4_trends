@@ -1,0 +1,19 @@
+November 24th, 2021
+Code to process the State of Utah's Oil/Gas Data
+Monthly production data downloaded from:  https://oilgas.ogm.utah.gov/oilgasweb/live-data-search/lds-prod/prod-main.xhtml
+NOTE: Using a well's API Number (American Petroleum Institute standard format for numbering) is usually the most acurate way to pinpoint searches for individual wells. All API numbers for Utah wells begin with 43 (the API state code for Utah). The next 3 digits represent the county ( see county codes ). Digits 6 thru 10 are a sequential number assigned when a new well is permitted for drilling. A search done where "API Well Number is Like 43037" will retrieve all wells in San Juan County.”
+“43013”, starting with “43”, which denotes Utah wells
+“013” refers to wells in Duchesne county
+So "43013" downloads all well data from Duchesne county
+So "43047" downloads all well data from Uintah county
+
+Detailed Well Data (includes LOCATION)
+https://oilgas.ogm.utah.gov/oilgasweb/live-data-search/lds-well/well-history-lu.xhtml
+Choose “API Well Number:”  LIKE 43013  for Duschene County 
+Choose “API Well Number:”  LIKE 43047  for Uintah County 
+
+Report Date:  BETWEEN 01/01/2000, 12/31/2020  searches for all data between Jan. 1st, 2000 and Dec. 31st, 2020
+
+Merge Well Data with Monthly Production Data to Create Detailed Database of Well Locations and Activity as a Function of Time
+1) merge_well_data_production.r
+2) readin_oil_gas_production_monthly.r

@@ -1,0 +1,2 @@
+load("/Users/jcl/Dropbox/Proposals_Reports/NASA/NASA_CMS_Duren_CH4_2019/State_of_Utah_oil_gas_DATA/gas.oil.production.rds")
+q()
