@@ -1,82 +1,17 @@
-March 2021
+Code to calculate methane (CH4) emission trends based on observed CH4 in Utah's Uinta Basin
+By John C. Lin (John.Lin@utah.edu)
+
+The R code is executed in the following order:
 0) plot_CH4tseries_diurnal_seasonal.r 
 1) Fch4_simple.r
-1.5) Fch4_simple_multimettype.r
-1.6) export_Fch4simple.r
-2) Trend_foot_dCH4.r
-3) average_foot_monthly.r
-4) plot_foot_and_wells.r
-5) grid_well_info_foot.r
-6) convolve_foot_wellinfo.r
-7) plot_foot_wellinfo_convolved.r
-8) merge_CH4_UVwind_wellinfo.r
-9) dCH4_vs_foot_wellinfo.r
-10) plot_foot_wellinfo_tseries_trend.r
-
-----------------------------------
-May 28th, 2019
-
-Simple STILT analyses of Uintah Basin methane emissions
-Idea is to calculate AFTERNOON enhancements (CH4_HPL - CH4_FRU), and then divide by total footprint strength:
-  F_CH4 = (CH4_HPL - CH4_FRU)/sum(foot_i,j)
-
-Then see how stable F_CH4 is over different seasons and years.  
-
-"Fch4_simple.r"
-
-
--------- Forwarded Message --------
-Subject: 	Re: Uintah Basin CH4 inversion time period
-Date: 	Tue, 12 Feb 2019 16:41:32 -0700
-From: 	John C. Lin <John.Lin@utah.edu>
-Reply-To: 	John.Lin@utah.edu
-To: 	Ryan Bares <rbares1987@gmail.com>
-CC: 	Ben Fasoli <benfasoli@gmail.com>, Lewis Kunik <lewiskunik@gmail.com>
-
-
-Thanks Ryan!  Let's focus on March~May 2016 for the Uintah Basin analyses then.
-
-John
-
-On 2019-02-12 4:25 p.m., Ryan Bares wrote:
-> See my comments below regarding each site.
->
-> FRU: A small 3 day data gap at the beginning of March.  Other than that the data looks good.
-> ROO: Two small 1 to 2 day gaps.  The rest of the data looks great. 
-> HPL: One two day data gap that overlaps one of the ROO gaps.  Data otherwise looks great. 
-> CSP: Data looks great with no gaps. 
->
-> The uncertainty of the data during this period should be low and the few missing days of data shouldn't impact / bias the results of the inversion analysis.  If you want I can generate actual uncertainty numbers using Logan's interpolated method. All in all I think this is a good time period for the analysis especially given the CSP data.
->
-> Ryan 
->
-> On Tue, Feb 12, 2019 at 4:05 PM John C. Lin <John.Lin@utah.edu> wrote:
->
->     Ryan,
->
->     How do the data availability/quality look at HPL, ROO, and FRU between
->     March~May 2016?
->
->     John
->
->     On 2019-02-11 10:27 a.m., Ben Fasoli wrote:
->     > Nov 2015 - May 2016 were the LGR installation dates at CSP so I’d recommend that window (Mar/Apr if looking for a shorter period). We had a period later with the Nerdmobile parked next to the CSP shed but that data hasn’t been QAQC’ed yet.
->     >
->     > Welcome back Lewis - happy to see some eyes on the Uinta Basin dataset!
->     >
->     > Ben
->     >
->     >
->     >> On Feb 11, 2019, at 10:20 AM, John C. Lin <John.Lin@utah.edu> wrote:
->     >>
->     >> Ryan, Ben:
->     >>
->     >> Thinking about the time period for Lewis to carry out the CH4 inversion for the Uintah Basin, I was reminded of the importance of the Castlepeak (CSP) site.
->     >>
->     >> What would be a spring or fall period in which we have the most amount of quality Uintah Basin CH4 data?
->     >> Would it be spring 2016?
->     >>
->     >> At most a month to two months would be enough for this analysis, I think.
->     >>
->     >> John
->     >>
+2) Fch4_simple_multimettype.r
+3) export_Fch4simple.r
+4) Trend_foot_dCH4.r
+5) average_foot_monthly.r
+6) plot_foot_and_wells.r
+7) grid_well_info_foot.r
+8) convolve_foot_wellinfo.r
+9) plot_foot_wellinfo_convolved.r
+10) merge_CH4_UVwind_wellinfo.r
+11) dCH4_vs_foot_wellinfo.r
+12) plot_foot_wellinfo_tseries_trend.r
