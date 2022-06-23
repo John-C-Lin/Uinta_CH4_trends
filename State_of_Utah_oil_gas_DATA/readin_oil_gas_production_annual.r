@@ -5,8 +5,8 @@
 #####################
 counties<-c("Duchesne","Uintah")
 #Years<-1984:2018
-Years<-2000:2020
-obsYrs<-2015:2020   #yrs when have surface CH4 obs
+Years<-2000:2021
+obsYrs<-2015:2021   #yrs when have surface CH4 obs
 Mons.in.Last.Year <- 12   #number of months in the last year, when data were downloaded (to properly scale last year's production)
 resultname<-"gas.oil.production_annual.rds"
 #####################
