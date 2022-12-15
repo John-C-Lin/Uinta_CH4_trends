@@ -14,17 +14,16 @@ col.oil <- "#1D4ED8"  # blue
 #I.  Compare CH4 time series 
 ##########
 MONsel <- 4:9 # months to examine
-YEARs <- 2015:2021
-#YEARs <- 2020:2021
+YEARs <- 2015:2022
 SITEs <- c("FRU","CSP","HPL")
 ##########
 # combine data from different years
 dat.all<-NULL
 colnms.sel <- paste0("CH4_",SITEs)
 for(i in 1:length(YEARs)){
-  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i])
+  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i],".rds")
   print(paste("Reading in.....",objname))
-  tmp <- getr(objname,path=obsdir)
+  tmp <- readRDS(paste0(obsdir,"/",objname))
   dat.add <- matrix(NA,nrow=nrow(tmp),ncol=length(colnms.sel))
   colnames(dat.add) <- colnms.sel
   dat.add <- data.frame(dat.add)
@@ -69,8 +68,8 @@ dev.copy(png,filename="CH4_tseries_allsites.png",width=480*8/6,height=480);dev.o
 #########################################################
 #II.  Compare DIURNAL CYCLES @ HPL in different years
 ##########
-YEARs <- 2015:2021
-COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","pink")
+YEARs <- 2015:2022
+COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","pink","magenta")
 names(COLS) <- YEARs
 MONsel <- 4:9 # months to examine
 #MONsel <- 4:5 # months to examine
@@ -84,9 +83,9 @@ MONsel.txt <- formatC(MONsel,width=2,flag="0")
 # combine data from different years
 dat.all<-NULL
 for(i in 1:length(YEARs)){
-  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i])
+  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i],".rds")
   print(paste("Reading in.....",objname))
-  tmp <- getr(objname,path=obsdir)
+  tmp <- readRDS(paste0(obsdir,"/",objname))
   sel <- paste0("CH4_",SITE)%in%colnames(tmp)
   if(sum(sel)==length(SITE)){
     tmp2 <- tmp[,c("Time",paste0("CH4_",c(SITE,"FRU")))]
@@ -155,11 +154,11 @@ legend("topleft",Years,bty="n",lwd=2,text.col=COLS,col=COLS,lty=1)
 #########################################################
 #IV.  Compare DIURNAL CYCLES @ CSP in different years
 ##########
-YEARs <- (2015:2020)[c(2,6)]
-COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red")[c(2,6)]
+YEARs <- (2015:2022)[c(2,6,7,8)]
+COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","pink","magenta")[c(2,6,7,8)]
 names(COLS) <- YEARs
-#MONsel <- 4:9 # months to examine
-MONsel <- 4:5 # months to examine
+MONsel <- 4:9 # months to examine
+#MONsel <- 4:5 # months to examine
 SITE <- "CSP"
 ylims <- c(0,0.5)*1000  # [ppb]
 ##########
@@ -167,9 +166,9 @@ MONsel.txt <- formatC(MONsel,width=2,flag="0")
 # combine data from different years
 dat.all<-NULL
 for(i in 1:length(YEARs)){
-  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i])
+  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i],".rds")
   print(paste("Reading in.....",objname))
-  tmp <- getr(objname,path=obsdir)
+  tmp <- readRDS(paste0(obsdir,"/",objname))
   sel <- paste0("CH4_",SITE)%in%colnames(tmp)
   if(sum(sel)==length(SITE)){
     tmp2 <- tmp[,c("Time",paste0("CH4_",c(SITE,"FRU")))]
