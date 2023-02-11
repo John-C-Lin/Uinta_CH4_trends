@@ -15,18 +15,18 @@
 
 require(ncdf4); require(fields); require(geosphere)
 ####################
-YEARs <- 2015:2020
+YEARs <- 2015:2022
 MONsub <- 4:9 #subset of months to calculate fluxes and leak rates
 #MONsub <- 6:8 #subset of months to calculate fluxes and leak rates
 HRs<-20:23  #[UTC]  only analyze afternoon hours, following Foster papers
-#HRs<-17:23  #[UTC]  only analyze afternoon hours, following Foster papers
 SITE<-"HPL" #HPL is site to focus on for calculating long-term F_CH4
 #SITE<-"ROO" 
 #SITE<-"CSP" 
-if(SITE=="CSP")YEARs <- c(2016,2019,2020)
+if(SITE=="CSP")YEARs <- c(2016,2019,2020,2021,2022)
 if(SITE=="ROO")YEARs <- 2015:2019
 
-obsdir <- "/uufs/chpc.utah.edu/common/home/lin-group4/jcl/SimCity/"
+#obsdir <- "/uufs/chpc.utah.edu/common/home/lin-group4/jcl/SimCity/"
+obsdir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/SimCity/GHGsites_scripts/"
 winddir <- "/uufs/chpc.utah.edu/common/home/lin-group7/jcl/Transporterr_stiltread/Output"  #where wind obs and sim values are found
 
 mettype <- "HRRR"
@@ -48,7 +48,7 @@ resultname<-paste("Fch4_",SITE,"_daily_",mettype,".rds",sep="")
 
 Nday.min <- 10          # minimum days necessary for a monthly average to be retained (otherwise assigned NA)
 
-preparedata.TF <- TRUE  # run lines to prepare data?
+preparedata.TF <- FALSE # run lines to prepare data?
 fillFRU.TF <- TRUE      # fill in gaps in background (FRU) time series?
 filterUV.TF <- TRUE     # filter times based on U/V (filter out times when HRRR is off--i.e., large transport errors) ?
 domainsens.TF <- FALSE  # sensitivity analysis varyiing the domain size?
@@ -86,9 +86,9 @@ if(preparedata.TF){
 #I.  Calculate CH4 enhancements over background site (FRU)
 dat.all<-NULL
 for(i in 1:length(YEARs)){
-  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i])
+  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i],".rds")
   print(paste("Reading in.....",objname))
-  tmp<-getr(objname,path=obsdir)[,c("Time",paste0("CH4_",c(SITE,"FRU")))]
+  tmp<-readRDS(paste0(obsdir,"/",objname))[,c("Time",paste0("CH4_",c(SITE,"FRU")))]
   print(colnames(tmp))
   dat.all<-rbind(dat.all,tmp)
   gc()
@@ -542,7 +542,7 @@ Ech4.yr.perc.stderr<-100*Ech4.yr.stderr/NatGas   #stderr as % of CH4 in natural 
 XMAIN <- paste0(SITE,";  UThrs: ",paste(HRs,collapse=","),"\nfillFRU.TF=",fillFRU.TF,";  filterUV.TF=",filterUV.TF)
 XSUB <- paste0("mettype=",mettype,"; Mons: ",paste(MONsub,collapse=","),";  Nday.min=",Nday.min,";  CH4.VOLFRAC=",CH4.VOLFRAC)
 dev.new();par(cex.axis=1.3,cex.lab=1.3,cex.main=1.3,mar=c(5,5,4,5))
-ylims<-c(0,10)
+ylims<-c(0,15)
 plot(frYr,Ech4.yr.perc,main=XMAIN,sub=XSUB,pch=16,type="o",
      xlab="Year",ylab="Emissions of CH4 from Uintah Basin [% Production]",ylim=ylims)
 segments(x0=frYr,y0=Ech4.yr.perc-Ech4.yr.perc.stderr,x1=frYr,y1=Ech4.yr.perc+Ech4.yr.perc.stderr)
@@ -578,7 +578,7 @@ dev.copy(png,"Fch4_simple_6.png");dev.off()
 YYYY<-names(Ech4.yr.perc)
 frYr<-as.numeric(substring(YYYY,1,4))+0.5
 dev.new();par(cex.axis=1.3,cex.lab=1.3,cex.main=1.3,mar=c(5,5,4,5))
-ylims<-c(0,10)
+ylims<-c(0,15)
 #ylims<-c(0,18)
 #ylims<-NULL
 XMAIN <- paste0(SITE,";  UThrs: ",paste(HRs,collapse=","),"\nfillFRU.TF=",fillFRU.TF,";  filterUV.TF=",filterUV.TF)
@@ -610,7 +610,7 @@ XSUB <- paste0("mettype=",mettype,";  Mons: ",paste(MONsub,collapse=","),";  Nda
                 round(XLIMS[1],2),",",round(XLIMS[2],2),"; YLIMS=",round(YLIMS[1],2),",",round(YLIMS[2],2))
 dev.new();par(cex.axis=1.5,cex.lab=1.5,cex.main=1.5,cex.sub=1.0,mar=c(5,5,4,5))
 ylims <- c(18,60)
-xlims <- c(2015,2021)
+xlims <- c(2015,2023)
 plot(frYr[SEL],Ech4.basin[SEL],main=XMAIN,sub=XSUB,pch=16,lwd=2,ylim=ylims,xlim=xlims,
      #xlab="Year",ylab="Emissions of CH4 from Uintah Basin [10^3 kg/hr]",type="p",col="gray")
      xlab="Year",ylab=expression(paste("CH"[4]," Emissions [10"^3," kg hr"^-1,"]")),type="p",col="gray")
@@ -651,7 +651,7 @@ XSUB <- paste0("mettype=",mettype,";  Mons: ",paste(MONsub,collapse=","),";  Nda
                 round(XLIMS[1],2),",",round(XLIMS[2],2),"; YLIMS=",round(YLIMS[1],2),",",round(YLIMS[2],2))
 dev.new();par(cex.axis=1.5,cex.lab=1.5,cex.main=1.5,cex.sub=1.0,mar=c(5,5,4,5))
 ylims <- c(18,60)
-xlims <- c(2015,2021)
+xlims <- c(2015,2023)
 plot(frYr[SEL],Ech4.basin[SEL],main=XMAIN,sub=XSUB,pch=16,lwd=2,ylim=ylims,xlim=xlims,
      xlab="Year",ylab=expression(paste("CH"[4]," Emissions [10"^3," kg hr"^-1,"]")),type="n",col="gray")
 #segments(x0=frYr[SEL],y0=Ech4.basin[SEL]-Ech4.basin.stderr[SEL],x1=frYr[SEL],y1=Ech4.basin[SEL]+Ech4.basin.stderr[SEL],col="gray")
