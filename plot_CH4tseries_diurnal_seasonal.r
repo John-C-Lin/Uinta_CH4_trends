@@ -5,7 +5,7 @@
 ####################
 UTsel <- 20:23  # [UTC]  only analyze afternoon hours, following Foster papers
 #obsdir <- "/uufs/chpc.utah.edu/common/home/lin-group15/jcl/SimCity/"
-obsdir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/SimCity/"
+obsdir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/SimCity/GHGsites_scripts/"
 col.gas <- "#B91C1C"  # red
 col.oil <- "#1D4ED8"  # blue
 ####################
@@ -14,7 +14,7 @@ col.oil <- "#1D4ED8"  # blue
 #I.  Compare CH4 time series 
 ##########
 MONsel <- 4:9 # months to examine
-YEARs <- 2015:2022
+YEARs <- 2015:2023
 SITEs <- c("FRU","CSP","HPL")
 ##########
 # combine data from different years
@@ -68,8 +68,8 @@ dev.copy(png,filename="CH4_tseries_allsites.png",width=480*8/6,height=480);dev.o
 #########################################################
 #II.  Compare DIURNAL CYCLES @ HPL in different years
 ##########
-YEARs <- 2015:2022
-COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","pink","magenta")
+YEARs <- 2015:2023
+COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","darkred","pink","magenta")
 names(COLS) <- YEARs
 MONsel <- 4:9 # months to examine
 #MONsel <- 4:5 # months to examine
@@ -154,8 +154,8 @@ legend("topleft",Years,bty="n",lwd=2,text.col=COLS,col=COLS,lty=1)
 #########################################################
 #IV.  Compare DIURNAL CYCLES @ CSP in different years
 ##########
-YEARs <- (2015:2022)[c(2,6,7,8)]
-COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","pink","magenta")[c(2,6,7,8)]
+YEARs <- (2015:2023)[c(2,6,7,8,9)]
+COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","darkred","pink","magenta")[c(2,6,7,8,9)]
 names(COLS) <- YEARs
 MONsel <- 4:9 # months to examine
 #MONsel <- 4:5 # months to examine
