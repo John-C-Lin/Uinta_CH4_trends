@@ -15,19 +15,18 @@
 
 require(ncdf4); require(fields); require(geosphere)
 ####################
-YEARs <- 2015:2022
+YEARs <- 2015:2023
 MONsub <- 4:9 #subset of months to calculate fluxes and leak rates
 #MONsub <- 6:8 #subset of months to calculate fluxes and leak rates
 HRs<-20:23  #[UTC]  only analyze afternoon hours, following Foster papers
 SITE<-"HPL" #HPL is site to focus on for calculating long-term F_CH4
 #SITE<-"ROO" 
 #SITE<-"CSP" 
-if(SITE=="CSP")YEARs <- c(2016,2019,2020,2021,2022)
+if(SITE=="CSP")YEARs <- c(2016,2019,2020,2021,2022,2023)
 if(SITE=="ROO")YEARs <- 2015:2019
 
-#obsdir <- "/uufs/chpc.utah.edu/common/home/lin-group4/jcl/SimCity/"
 obsdir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/SimCity/GHGsites_scripts/"
-winddir <- "/uufs/chpc.utah.edu/common/home/lin-group7/jcl/Transporterr_stiltread/Output"  #where wind obs and sim values are found
+winddir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/Transporterr_stiltread/out" #where wind obs and sim values are found
 
 mettype <- "HRRR"
 #mettype <- "HRRR_2000particles"
@@ -38,17 +37,17 @@ mettype <- "HRRR"
 #  STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group7/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_STILT/out/"
 # b) HYSPLIT-STILT executable
 #mettype <- toupper(mettype)
-if(mettype=="HRRR")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group7/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_HRRR/out/"
-if(mettype=="HRRR_2000particles")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group7/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_HRRR/out/"
-if(mettype=="NAM12")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group7/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_NAM12/out/"
-if(mettype=="WRF27")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group7/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_WRF27km/out/"
+if(mettype=="HRRR")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group20/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_HRRR/out/"
+if(mettype=="HRRR_2000particles")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group20/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_HRRR/out/"
+if(mettype=="NAM12")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group20/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_NAM12/out/"
+if(mettype=="WRF27")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group20/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_WRF27km/out/"
 print(paste("STILTdir=",STILTdir))
 
 resultname<-paste("Fch4_",SITE,"_daily_",mettype,".rds",sep="")
 
 Nday.min <- 10          # minimum days necessary for a monthly average to be retained (otherwise assigned NA)
 
-preparedata.TF <- FALSE # run lines to prepare data?
+preparedata.TF <- TRUE  # run lines to prepare data?
 fillFRU.TF <- TRUE      # fill in gaps in background (FRU) time series?
 filterUV.TF <- TRUE     # filter times based on U/V (filter out times when HRRR is off--i.e., large transport errors) ?
 domainsens.TF <- FALSE  # sensitivity analysis varyiing the domain size?
@@ -153,16 +152,16 @@ dat.all <- data.frame(dCH4,dat.all)
 
 #calculate DAILY dCH4
 dCH4 <- data.frame(Time=dat.all[,"Time"],dCH4)   #[ppm]
-Time.day<-format(dCH4[,"Time"],format="%Y%m%d")
-dCH4.ave<-tapply(dCH4[,"dCH4"],Time.day,mean,na.rm=T)
-Time<-strptime(names(dCH4.ave),"%Y%m%d",tz="GMT")
-dCH4.ave<-data.frame(YYYYMMDD=names(dCH4.ave),Time,dCH4.ave,stringsAsFactors=FALSE)
+Time.day <- format(dCH4[,"Time"],format="%Y%m%d")
+dCH4.ave <- tapply(dCH4[,"dCH4"],Time.day,mean,na.rm=T)
+Time <- strptime(names(dCH4.ave),"%Y%m%d",tz="GMT")
+dCH4.ave <- data.frame(YYYYMMDD=names(dCH4.ave),Time,dCH4.ave,stringsAsFactors=FALSE)
 dev.new();par(cex.axis=1.3,cex.lab=1.3,cex.main=1.3)
 plot(dCH4.ave[,c("Time","dCH4.ave")],main=paste(SITE,"\nUThrs:",paste(HRs,collapse=" ")),pch=16,
      xlab="Time",ylab="Daily Averge Enhancement over Background [ppm]")
-dCH4.ave<-data.frame(dCH4.ave,footsum=NA,foot.basin=NA)
-sel<-substring(dCH4.ave[,"YYYYMMDD"],1,6)%in%c("201501","201502","201503","201504","201505","201506")   #lack of obs--remove
-dCH4.ave<-dCH4.ave[!sel,]
+dCH4.ave <- data.frame(dCH4.ave,footsum=NA,foot.basin=NA)
+sel <- substring(dCH4.ave[,"YYYYMMDD"],1,6)%in%c("201501","201502","201503","201504","201505","201506")   #lack of obs--remove
+dCH4.ave <- dCH4.ave[!sel,]
 
 
 dat.all <- data.frame(dat.all,footsum=NA,foot.basin=NA)
@@ -611,7 +610,7 @@ XSUB <- paste0("mettype=",mettype,";  Mons: ",paste(MONsub,collapse=","),";  Nda
 dev.new();par(cex.axis=1.5,cex.lab=1.5,cex.main=1.5,cex.sub=1.0,mar=c(5,5,4,5))
 ylims <- c(18,60)
 xlims <- c(2015,2023)
-plot(frYr[SEL],Ech4.basin[SEL],main=XMAIN,sub=XSUB,pch=16,lwd=2,ylim=ylims,xlim=xlims,
+plot(frYr[SEL],Ech4.basin[SEL],main=XMAIN,sub=XSUB,pch=16,lwd=2,ylim=ylims,xlim=c(xlims[1],xlims[2]+1),
      #xlab="Year",ylab="Emissions of CH4 from Uintah Basin [10^3 kg/hr]",type="p",col="gray")
      xlab="Year",ylab=expression(paste("CH"[4]," Emissions [10"^3," kg hr"^-1,"]")),type="p",col="gray")
 #abline(h=55,col="red",lty=2,lwd=2) #Uintah Basin-wide CH4 emissions [10^3 kg/hr], as reported by Karion et al. [2013]
