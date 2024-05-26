@@ -15,9 +15,10 @@
 
 require(ncdf4); require(fields); require(geosphere)
 ####################
-YEARs <- 2015:2023
+YEARs <- 2015:2023          # which years to analyze?
+YEARs2prepare <- 2015:2023  # which years of data to prepare? (if preparedataTF is TRUE)
+                            # NOTE: YEARs2prepare can be different (and subset) of YEARs
 MONsub <- 4:9 #subset of months to calculate fluxes and leak rates
-#MONsub <- 6:8 #subset of months to calculate fluxes and leak rates
 HRs<-20:23  #[UTC]  only analyze afternoon hours, following Foster papers
 SITE<-"HPL" #HPL is site to focus on for calculating long-term F_CH4
 #SITE<-"ROO" 
@@ -26,7 +27,7 @@ if(SITE=="CSP")YEARs <- c(2016,2019,2020,2021,2022,2023)
 if(SITE=="ROO")YEARs <- 2015:2019
 
 obsdir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/SimCity/GHGsites_scripts/"
-winddir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/Transporterr_stiltread/out" #where wind obs and sim values are found
+winddir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/Transporterr_stiltread/Transerr_stiltread/out" #where wind obs and sim values are found
 
 mettype <- "HRRR"
 #mettype <- "HRRR_2000particles"
@@ -43,7 +44,7 @@ if(mettype=="NAM12")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group20/jcl/C
 if(mettype=="WRF27")STILTdir<-"/uufs/chpc.utah.edu/common/home/lin-group20/jcl/CH4_inversion/CH4_inversion_Uintah/CH4_inversion_Uintah_HYSPLIT-STILT_WRF27km/out/"
 print(paste("STILTdir=",STILTdir))
 
-resultname<-paste("Fch4_",SITE,"_daily_",mettype,".rds",sep="")
+resultname <- paste("Fch4_",SITE,"_daily_",mettype,".rds",sep="")  # file to store results
 
 Nday.min <- 10          # minimum days necessary for a monthly average to be retained (otherwise assigned NA)
 
@@ -80,24 +81,24 @@ MCF2kg <- function(MCF,CH4.VOLFRAC=0.89){
   return(NatGas)
 } # MCF2kg <- function(MCF,CH4.VOLFRAC=0.89){
 
-if(preparedata.TF){
+if(preparedata.TF){  #-------------------------------------------------------------------------------------------- if(preparedata.TF)
 #########################################################
-#I.  Calculate CH4 enhancements over background site (FRU)
-dat.all<-NULL
-for(i in 1:length(YEARs)){
-  objname<-paste0("SimCity_CH4_allsites_hrly_",YEARs[i],".rds")
-  print(paste("Reading in.....",objname))
-  tmp<-readRDS(paste0(obsdir,"/",objname))[,c("Time",paste0("CH4_",c(SITE,"FRU")))]
-  print(colnames(tmp))
-  dat.all<-rbind(dat.all,tmp)
-  gc()
-} #for(i in 1:length(YEARs)){
 
-# filter for specified hrs [UTC]
-YYYYMMDDHH <- format(dat.all$Time,"%Y%m%d%H")
-dat.all <- data.frame(YYYYMMDDHH,dat.all)
-sel <- as.numeric(substring(dat.all$YYYYMMDDHH,9,10))%in%HRs
-dat.all <- dat.all[sel,]
+# Prepare data--Year by Year, since this process takes some time
+for(yy in 1:length(YEARs2prepare)){
+  YEAR <- YEARs2prepare[yy]
+  resultname.yr <- paste0("Fch4_",SITE,"_",mettype,"_",YEAR)
+
+#I.  Calculate CH4 enhancements over background site (FRU)
+  objname <- paste0("SimCity_CH4_allsites_hrly_",YEAR,".rds")
+  print(paste("Reading in.....",objname))
+  dat.all <- readRDS(paste0(obsdir,"/",objname))[,c("Time",paste0("CH4_",c(SITE,"FRU")))]
+
+  # filter for specified hrs [UTC]
+  YYYYMMDDHH <- format(dat.all$Time,"%Y%m%d%H")
+  dat.all <- data.frame(YYYYMMDDHH,dat.all)
+  sel <- as.numeric(substring(dat.all$YYYYMMDDHH,9,10))%in%HRs
+  dat.all <- dat.all[sel,]
 
 # fill in gaps in background (FRU) time series
 if(fillFRU.TF){
@@ -133,7 +134,8 @@ if(fillFRU.TF){
     return(x)
   } # f <- function(x){
   FRU.gapfilled <- unlist(tapply(dat$CH4_FRU,dat$YYYYMM,f))
-  if(TRUE){
+  # plotting gap-filled time series
+  if(FALSE){
     FRU.monave <- tapply(dat$CH4_FRU,dat$YYYYMM,mean,na.rm=T)
     tt <- as.numeric(substring(names(FRU.monave),1,4))+as.numeric(substring(names(FRU.monave),5,6))/12
     dev.new(); plot(tt,FRU.monave,pch=16,type="o")
@@ -163,7 +165,6 @@ dCH4.ave <- data.frame(dCH4.ave,footsum=NA,foot.basin=NA)
 sel <- substring(dCH4.ave[,"YYYYMMDD"],1,6)%in%c("201501","201502","201503","201504","201505","201506")   #lack of obs--remove
 dCH4.ave <- dCH4.ave[!sel,]
 
-
 dat.all <- data.frame(dat.all,footsum=NA,foot.basin=NA)
 #########################################################
 #II.  Calculate total footprint strengths and subset of footprint strength that just fall within Uintah Basin
@@ -188,7 +189,8 @@ for(i in 1:nrow(dat.all)){
   foot.basin <- sum(xfoot[sel.x,sel.y])
   dat.all[i,"foot.basin"]<-foot.basin
 
-  saveRDS(dat.all,file=paste0("Fch4_",SITE,"_",mettype,".rds"))
+  #saveRDS(dat.all,file=paste0("Fch4_",SITE,"_",mettype,".rds"))
+  saveRDS(dat.all,file=paste0(resultname.yr,".rds"))
   nc_close(xnc)
   gc()
 } #for(i in 1:nrow(dCH4)){
@@ -196,50 +198,62 @@ for(i in 1:nrow(dat.all)){
 
 #########################################################
 #III.  Merge with wind data (obs and HRRR simulated winds) to enable times when HRRR are off to be filtered out
-dat.all <- readRDS(paste0("Fch4_",SITE,"_",mettype,".rds"))
+dat.all <- readRDS(paste0(resultname.yr,".rds"))
 wind.all <- NULL
-for(yy in 1:length(YEARs)){
-  # read in HRRR winds + observed values
-  windname <- paste0("HRRR_obs_",YEARs[yy],"01010000to",YEARs[yy],"12312300.RDS")
-  if(YEARs[yy]=="2018")windname <- paste0("HRRR_obs_",YEARs[yy],"01010000to",YEARs[yy],"12310000.RDS")  # typo during 2018
-  colnms <- c("Time",paste0(c("Usim.","Vsim.","Tsim.","Uobs.","Vobs.","Tobs."),WINDsite))
-  # UBHSP site not available in 2015, so use A1633 (RedWash) site instead in 2015
-  if(SITE=="HPL")colnms <- c("Time",paste0(c("Usim.","Vsim.","Tsim.","Uobs.","Vobs.","Tobs."),WINDsite),
-                                    paste0(c("Usim.","Vsim.","Tsim.","Uobs.","Vobs.","Tobs."),WINDsite.2015))
-  if(file.exists(paste0(winddir,"/",windname))) {
-    print(paste("Reading in.....",windname))
-    tmp0 <- readRDS(paste0(winddir,"/",windname))$dat
-    tmp <- matrix(NA,nrow=nrow(tmp0),ncol=length(colnms))
-    colnames(tmp) <- colnms
-    tmp <- data.frame(tmp)
-    colnms.sel <- colnames(tmp0)%in%colnms
-    tmp[,colnames(tmp0)[colnms.sel]] <- tmp0[,colnms.sel]
-  } else {
-    print(paste("Doesn't exists:",windname,"; replaces with NAs"))
-    tmp.dat <- dat.all[substring(dat.all$YYYYMM,1,4)==YEARs[yy],]
-    tmp <- matrix(NA,nrow=nrow(tmp.dat),ncol=length(colnms))
-    colnames(tmp) <- colnms
-    tmp <- data.frame(tmp)
-    tmp$Time <- tmp.dat$Time
-  } # if(file.exists(paste0(winddir,"/",windname)){
-  wind.all <- rbind(wind.all,tmp)
+# read in HRRR winds + observed values
+windname <- paste0("HRRR_obs_",YEAR,"01010000to",YEAR,"12312300.RDS")
+if(YEAR=="2018")windname <- paste0("HRRR_obs_",YEAR,"01010000to",YEAR,"12310000.RDS")  # typo during 2018
+colnms <- c("Time",paste0(c("Usim.","Vsim.","Tsim.","Uobs.","Vobs.","Tobs."),WINDsite))
+# UBHSP site not available in 2015, so use A1633 (RedWash) site instead in 2015
+if(SITE=="HPL")colnms <- c("Time",paste0(c("Usim.","Vsim.","Tsim.","Uobs.","Vobs.","Tobs."),WINDsite),
+                                  paste0(c("Usim.","Vsim.","Tsim.","Uobs.","Vobs.","Tobs."),WINDsite.2015))
+if(file.exists(paste0(winddir,"/",windname))) {
+   print(paste("Reading in.....",windname))
+   tmp0 <- readRDS(paste0(winddir,"/",windname))$dat
+   tmp <- matrix(NA,nrow=nrow(tmp0),ncol=length(colnms))
+   colnames(tmp) <- colnms
+   tmp <- data.frame(tmp)
+   colnms.sel <- colnames(tmp0)%in%colnms
+   tmp[,colnames(tmp0)[colnms.sel]] <- tmp0[,colnms.sel]
+ } else {
+   print(paste("Doesn't exists:",windname,"; replaces with NAs"))
+   tmp.dat <- dat.all[substring(dat.all$YYYYMM,1,4)==YEAR,]
+   tmp <- matrix(NA,nrow=nrow(tmp.dat),ncol=length(colnms))
+   colnames(tmp) <- colnms
+   tmp <- data.frame(tmp)
+   tmp$Time <- tmp.dat$Time
+ } # if(file.exists(paste0(winddir,"/",windname)){
+wind.all <- tmp
+gc()
 
+# merge dat.all with wind data
+result <- merge(x=dat.all,y=wind.all,by='Time',all.x=TRUE,all.y=FALSE)
+dat.all <- result
+saveRDS(dat.all,file=paste0(resultname.yr,".rds"))
+print(paste0(resultname.yr,".rds written out"))
+write.csv(dat.all,file=paste0(resultname.yr,".csv"),row.names=FALSE)
+print(paste0(resultname.yr,".csv"," written out"))
+
+} # for(yy in 1:length(YEARs2prepare)){
+
+} # if(preparedata.TF){ -------------------------------------------------------------------------------------------- if(preparedata.TF)
+
+
+#########################################################
+# Retrieve data, year by year, and save to object with all the years
+for(i in 1:length(YEARs)){
+  resultname.yr <- paste0("Fch4_",SITE,"_",mettype,"_",YEARs[i])
+  print(paste("Reading in.....",resultname.yr))
+  tmp <- readRDS(paste0(resultname.yr,".rds"))
+  dat.all <- rbind(dat.all,tmp)
   gc()
-} # for(yy in 1:length(YEARs)){
-
-  # merge dat.all with wind data
-  result <- merge(x=dat.all,y=wind.all,by='Time',all.x=TRUE,all.y=FALSE)
-  dat.all <- result
-  saveRDS(dat.all,file=paste0("Fch4_",SITE,"_",mettype,".rds"))
-  print(paste0("Fch4_",SITE,"_",mettype,".rds"," written out"))
-  write.csv(dat.all,file=paste0("Fch4_",SITE,"_",mettype,".csv"),row.names=FALSE)
-  print(paste0("Fch4_",SITE,"_",mettype,".csv"," written out"))
-
-} # if(preparedata.TF){
+} # for(i in 1:length(YEARs)){
+saveRDS(dat.all,file=resultname)
+print(paste(resultname,"written out"))
 
 #########################################################
 #IV.   Filter times based on U/V (filter out times when HRRR is off--i.e., large transport errors) ?
-dat.all <- readRDS(paste0("Fch4_",SITE,"_",mettype,".rds"))
+dat.all <- readRDS(resultname)
 if(filterUV.TF){ 
   dat <- dat.all
   Usim <- dat[,paste0("Usim.",WINDsite)]; Vsim <- dat[,paste0("Vsim.",WINDsite)]
@@ -282,24 +296,24 @@ if(filterUV.TF){
 #########################################################
 #V.   Calculate daily averages
 dat <- dat.all
-Time.day<-format(dat$Time,format="%Y%m%d")
-dCH4.ave<-tapply(dat$dCH4,Time.day,mean,na.rm=T)
-Time<-strptime(names(dCH4.ave),"%Y%m%d",tz="GMT")
-footsum<-tapply(dat$footsum,Time.day,mean,na.rm=T)
-foot.basin<-tapply(dat$foot.basin,Time.day,mean,na.rm=T)
+Time.day <- format(dat$Time,format="%Y%m%d")
+dCH4.ave <- tapply(dat$dCH4,Time.day,mean,na.rm=T)
+Time <- strptime(names(dCH4.ave),"%Y%m%d",tz="GMT")
+footsum <- tapply(dat$footsum,Time.day,mean,na.rm=T)
+foot.basin <- tapply(dat$foot.basin,Time.day,mean,na.rm=T)
 
-result<-data.frame(YYYYMMDD=names(dCH4.ave),Time,dCH4.ave,footsum,foot.basin,stringsAsFactors=FALSE)
+result <- data.frame(YYYYMMDD=names(dCH4.ave),Time,dCH4.ave,footsum,foot.basin,stringsAsFactors=FALSE)
 
 #########################################################
 #VI.   Divide CH4 enhancement by footprint strength to calculate CH4 fluxes
 #      e.g., F_CH4 = (CH4_HPL - CH4_FRU)/sum(foot_i,j)
-Fch4.sum<-result[,"dCH4.ave"]/result[,"footsum"]  #Fch4 calculated with total footprint
-sel<-result[,"footsum"]<quantile(result[,"footsum"],prob=0.10,na.rm=T) #filter out cases when footprint is too weak...
-Fch4.sum[Fch4.sum<0|sel]<-NA  
-Fch4.basin<-result[,"dCH4.ave"]/result[,"foot.basin"] #Fch4 calculated with footprint only within Uintah Basin
-sel<-result[,"foot.basin"]<quantile(result[,"foot.basin"],prob=0.10,na.rm=T) #filter out cases when footprint is too weak...
-Fch4.basin[Fch4.basin<0|sel]<-NA
-result<-data.frame(result,Fch4.sum,Fch4.basin)
+Fch4.sum <- result[,"dCH4.ave"]/result[,"footsum"]  #Fch4 calculated with total footprint
+sel <- result[,"footsum"]<quantile(result[,"footsum"],prob=0.10,na.rm=T) #filter out cases when footprint is too weak...
+Fch4.sum[Fch4.sum<0|sel] <- NA  
+Fch4.basin <- result[,"dCH4.ave"]/result[,"foot.basin"] #Fch4 calculated with footprint only within Uintah Basin
+sel <- result[,"foot.basin"]<quantile(result[,"foot.basin"],prob=0.10,na.rm=T) #filter out cases when footprint is too weak...
+Fch4.basin[Fch4.basin<0|sel] <- NA
+result <- data.frame(result,Fch4.sum,Fch4.basin)
 
 saveRDS(result,resultname)
 print(paste(resultname,"written out"))
