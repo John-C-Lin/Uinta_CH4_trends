@@ -10,8 +10,8 @@ counties <- c("Duchesne","Uintah")
 #Years <- 1984:2018
 #Years <- 2000:2020
 #Years <- 2005:2020
-Years <- 2005:2021
-obsYrs <- 2015:2021   #yrs when have surface CH4 obs
+Years <- 2005:2023
+obsYrs <- 2015:2023   #yrs when have surface CH4 obs
 MONsel <- 4:9 # months to examine
 
 resultname <- "gas.oil.production_monthly.rds"
@@ -181,7 +181,7 @@ if(FALSE){
 
 
 
-if(TRUE){
+if(FALSE){
 # Compare production values between monthly and earlier annual values
 
 #convert units of natural gas & oil production
