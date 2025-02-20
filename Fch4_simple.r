@@ -15,15 +15,15 @@
 
 require(ncdf4); require(fields); require(geosphere)
 ####################
-YEARs <- 2015:2023          # which years to analyze?
-YEARs2prepare <- 2015:2023  # which years of data to prepare? (if preparedataTF is TRUE)
+YEARs <- 2015:2024          # which years to analyze?
+YEARs2prepare <- 2024     # which years of data to prepare? (if preparedataTF is TRUE)
                             # NOTE: YEARs2prepare can be different (and subset) of YEARs
 MONsub <- 4:9 #subset of months to calculate fluxes and leak rates
 HRs<-20:23  #[UTC]  only analyze afternoon hours, following Foster papers
 SITE<-"HPL" #HPL is site to focus on for calculating long-term F_CH4
 #SITE<-"ROO" 
 #SITE<-"CSP" 
-if(SITE=="CSP")YEARs <- c(2016,2019,2020,2021,2022,2023)
+if(SITE=="CSP")YEARs <- c(2016,2019,2020,2021,2022,2023,2024)
 if(SITE=="ROO")YEARs <- 2015:2019
 
 obsdir <- "/uufs/chpc.utah.edu/common/home/u0791084/PROJECTS/SimCity/GHGsites_scripts/"
@@ -48,7 +48,7 @@ resultname <- paste("Fch4_",SITE,"_daily_",mettype,".rds",sep="")  # file to sto
 
 Nday.min <- 10          # minimum days necessary for a monthly average to be retained (otherwise assigned NA)
 
-preparedata.TF <- TRUE  # run lines to prepare data?
+preparedata.TF <- FALSE # run lines to prepare data?
 fillFRU.TF <- TRUE      # fill in gaps in background (FRU) time series?
 filterUV.TF <- TRUE     # filter times based on U/V (filter out times when HRRR is off--i.e., large transport errors) ?
 domainsens.TF <- FALSE  # sensitivity analysis varyiing the domain size?
@@ -536,7 +536,7 @@ XMAIN <- paste0(SITE,";  UThrs: ",paste(HRs,collapse=","),"\nfillFRU.TF=",fillFR
 XSUB <- paste0("mettype=",mettype,";  Mons: ",paste(MONsub,collapse=","),";  Nday.min=",Nday.min)
 XSUB <- paste0(XSUB,"\n XLIMS=",round(XLIMS[1],2),",",round(XLIMS[2],2),"; YLIMS=",round(YLIMS[1],2),",",round(YLIMS[2],2))
 dev.new();par(cex.axis=1.3,cex.lab=1.3,cex.main=1.3,mar=c(5,5,4,5))
-ylims <- c(18,60)
+ylims <- c(15,60)
 plot(frYr,Ech4.yr,main=XMAIN,sub=XSUB,pch=16,type="o",ylim=ylims,
      xlab="Year",ylab="Emissions of CH4 from Uintah Basin [10^3 kg/hr]")
 #abline(h=55,col="red",lty=2,lwd=2) #Uintah Basin-wide CH4 emissions [10^3 kg/hr], as reported by Karion et al. [2013]
@@ -622,16 +622,15 @@ XMAIN <- paste0(SITE,":  UThrs=",paste(HRs,collapse=","),"\nfillFRU.TF=",fillFRU
 XSUB <- paste0("mettype=",mettype,";  Mons: ",paste(MONsub,collapse=","),";  Nday.min=",Nday.min,"; XLIMS=",
                 round(XLIMS[1],2),",",round(XLIMS[2],2),"; YLIMS=",round(YLIMS[1],2),",",round(YLIMS[2],2))
 dev.new();par(cex.axis=1.5,cex.lab=1.5,cex.main=1.5,cex.sub=1.0,mar=c(5,5,4,5))
-ylims <- c(18,60)
-xlims <- c(2015,2023)
+ylims <- c(15,60)
+xlims <- range(YEARs)
 plot(frYr[SEL],Ech4.basin[SEL],main=XMAIN,sub=XSUB,pch=16,lwd=2,ylim=ylims,xlim=c(xlims[1],xlims[2]+1),
-     #xlab="Year",ylab="Emissions of CH4 from Uintah Basin [10^3 kg/hr]",type="p",col="gray")
      xlab="Year",ylab=expression(paste("CH"[4]," Emissions [10"^3," kg hr"^-1,"]")),type="p",col="gray")
-#abline(h=55,col="red",lty=2,lwd=2) #Uintah Basin-wide CH4 emissions [10^3 kg/hr], as reported by Karion et al. [2013]
+# abline(h=55,col="red",lty=2,lwd=2) #Uintah Basin-wide CH4 emissions [10^3 kg/hr], as reported by Karion et al. [2013]
 segments(x0=frYr[SEL],y0=Ech4.basin[SEL]-Ech4.basin.stderr[SEL],x1=frYr[SEL],y1=Ech4.basin[SEL]+Ech4.basin.stderr[SEL],col="gray")
 # add in ANNUAL means (with errors)
 YYYY<-substring(names(Ech4.basin),1,4)
-#calculate error bars, sample numbers
+# calculate error bars, sample numbers
 isNA <- is.na(Ech4.basin)
 NN <- tapply(YYYY[SEL&!isNA],YYYY[SEL&!isNA],length)
 Ech4.basin.yr <- tapply(Ech4.basin[SEL&!isNA],YYYY[SEL&!isNA],mean,na.rm=T)
@@ -642,6 +641,13 @@ frYr<-as.numeric(substring(YYYY,1,4))+0.5
 lines(frYr,Ech4.basin.yr,pch=16,type="o",lwd=3)
 segments(x0=frYr,y0=Ech4.basin.yr-Ech4.basin.yr.stderr,x1=frYr,y1=Ech4.basin.yr+Ech4.basin.yr.stderr)
 dev.copy(png,"Fch4_simple_8.png");dev.off()
+# output monthly emission numbers into CSV file
+outdat <- Ech4.basin[SEL]
+outdat <- data.frame(names(outdat),outdat,Ech4.basin.stderr[SEL])
+colnames(outdat) <- c("YYYYMM","Ech4.basin [10^3 kg/hr]","Ech4.basin.stderr")
+timestamp <-  Sys.Date()
+outputfilename.basinflux <- paste("Fch4_",SITE,"_monthly_basinflux_",mettype,"_",timestamp,".csv",sep="")  # CSV file to store monthly emissions
+write.csv(outdat,file=outputfilename.basinflux,row.names=FALSE);print(paste(outputfilename.basinflux,"generated"))
 
 
 # sensitivity analysis varyiing the domain size?
@@ -664,7 +670,8 @@ XSUB <- paste0("mettype=",mettype,";  Mons: ",paste(MONsub,collapse=","),";  Nda
                 round(XLIMS[1],2),",",round(XLIMS[2],2),"; YLIMS=",round(YLIMS[1],2),",",round(YLIMS[2],2))
 dev.new();par(cex.axis=1.5,cex.lab=1.5,cex.main=1.5,cex.sub=1.0,mar=c(5,5,4,5))
 ylims <- c(18,60)
-xlims <- c(2015,2023)
+#xlims <- c(2015,2023)
+xlims <- range(YEARs)
 plot(frYr[SEL],Ech4.basin[SEL],main=XMAIN,sub=XSUB,pch=16,lwd=2,ylim=ylims,xlim=xlims,
      xlab="Year",ylab=expression(paste("CH"[4]," Emissions [10"^3," kg hr"^-1,"]")),type="n",col="gray")
 #segments(x0=frYr[SEL],y0=Ech4.basin[SEL]-Ech4.basin.stderr[SEL],x1=frYr[SEL],y1=Ech4.basin[SEL]+Ech4.basin.stderr[SEL],col="gray")
