@@ -14,7 +14,7 @@ col.oil <- "#1D4ED8"  # blue
 #I.  Compare CH4 time series 
 ##########
 MONsel <- 4:9 # months to examine
-YEARs <- 2015:2023
+YEARs <- 2015:2025
 SITEs <- c("FRU","CSP","HPL")
 ##########
 # combine data from different years
@@ -68,8 +68,8 @@ dev.copy(png,filename="CH4_tseries_allsites.png",width=480*8/6,height=480);dev.o
 #########################################################
 #II.  Compare DIURNAL CYCLES @ HPL in different years
 ##########
-YEARs <- 2015:2023
-COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","darkred","pink","magenta")
+YEARs <- 2015:2025
+COLS <- c("darkblue","lightblue","darkgreen","lightgreen","yellow","orange","red","darkred","pink","magenta","purple")
 names(COLS) <- YEARs
 MONsel <- 4:9 # months to examine
 #MONsel <- 4:5 # months to examine
@@ -127,6 +127,7 @@ mtext("Hour of Day [MST]",side=1,line=2.3,cex=1.3)
 rect(xleft=-1,ybottom=ylims[1]-100,xright=UTsel[1]-7,ytop=ylims[2]+100,col=gray(level=0.3,alpha=0.5),border="darkgray")
 rect(xleft=max(UTsel)+1-7,ybottom=ylims[1]-100,xright=24+1,ytop=ylims[2]+100,col=gray(level=0.3,alpha=0.5),border="darkgray")
 legend("bottomleft",Years,bty="n",lwd=2,text.col=COLS,col=COLS,lty=1,bg="white")
+dev.copy(png,filename=paste0("CH4_diurnal_",SITE,".png"));dev.off()
 
 
 #########################################################
@@ -147,15 +148,15 @@ for(yy in 1:length(Years)){
   lines(Mons,seas,pch=16,type="l",col=COLS[Years[yy]],lwd=2)
 } #for(yy in 1:length(Years)){
 legend("topleft",Years,bty="n",lwd=2,text.col=COLS,col=COLS,lty=1)
-
+dev.copy(png,filename=paste0("CH4_seasonal_",SITE,".png"));dev.off()
 
 
 
 #########################################################
 #IV.  Compare DIURNAL CYCLES @ CSP in different years
 ##########
-YEARs <- (2015:2023)[c(2,6,7,8,9)]
-COLS <- c("darkblue","lightblue","darkgreen","lightgreen","orange","red","darkred","pink","magenta")[c(2,6,7,8,9)]
+YEARs <- (2015:2025)[c(2,6,7,8,9,10,11)]
+COLS <- c("darkblue","lightblue","darkgreen","lightgreen","yellow","orange","red","darkred","pink","magenta","purple")[c(2,6,7,8,9,10,11)]
 names(COLS) <- YEARs
 MONsel <- 4:9 # months to examine
 #MONsel <- 4:5 # months to examine
@@ -185,6 +186,7 @@ YYYYMMDDHH <- format(dat.all[,"Time"],format="%Y%m%d%H")
 dat <- dat.all[substring(YYYYMMDDHH,5,6)%in%MONsel.txt,]
 YYYYMMDDHH <- format(dat[,"Time"],format="%Y%m%d%H")
 
+
 dev.new();par(cex.axis=1.3,cex.main=1.3,cex.lab=1.3,mar=c(5,5,4,2))
 plot(0,0,type="n",xlab="",ylab="CH4 enhancement over FRU [ppb]",ylim=ylims,xlim=c(0,24),axes=FALSE)
 title(main=paste("Average Diurnal Cycle:",SITE,"- FRU,\n Months:",paste(MONsel,collapse=",")))
@@ -209,6 +211,7 @@ mtext("Hour of Day [MST]",side=1,line=2.3,cex=1.3)
 rect(xleft=-1,ybottom=ylims[1]-100,xright=UTsel[1]-7,ytop=ylims[2]+100,col=gray(level=0.3,alpha=0.5),border="darkgray")
 rect(xleft=max(UTsel)+1-7,ybottom=ylims[1]-100,xright=24+1,ytop=ylims[2]+100,col=gray(level=0.3,alpha=0.5),border="darkgray")
 legend("bottomleft",Years,bty="n",lwd=2,text.col=COLS,col=COLS,lty=1,bg="white")
+dev.copy(png,filename=paste0("CH4_diurnal_",SITE,".png"));dev.off()
 
 
 #########################################################
@@ -229,3 +232,4 @@ for(yy in 1:length(Years)){
   lines(Mons,seas,pch=16,type="l",col=COLS[Years[yy]],lwd=2)
 } #for(yy in 1:length(Years)){
 legend("topleft",Years,bty="n",lwd=2,text.col=COLS,col=COLS,lty=1)
+dev.copy(png,filename=paste0("CH4_seasonal_",SITE,".png"));dev.off()
